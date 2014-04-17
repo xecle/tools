@@ -1,0 +1,51 @@
+#!/bin/bash
+#------------------xync---------------------#
+#                                           #
+#   sync a file to remote via scp           #
+#                                           #
+#-------------------------------------------#
+action=$1
+begin=`pwd`
+shift
+
+while [ ! z"$1" == z"" ]; do
+
+    if [ z"${1:0:1}" == z"/" ]; then
+        locale=$1
+    else
+        locale=`pwd`/$1
+    fi
+    if test -d "$local"
+    then
+	    base="$local"
+    else
+	    base=${locale%/*}
+	    if ! test -d "$base/"
+	    then
+		    mkdir -p "$base/"
+	    fi
+    fi
+    cd $base
+    while [ ! -e "./.xync" ]; do
+        cd ..
+        if [ z"$PWD" == z"/" ]; then
+            echo "xync config not found!"
+            break
+        fi
+    done
+
+    sub=${#PWD}
+    read base < .xync
+    remote=$base${locale:$sub}
+
+    if [ z"$action" == z"push" ]; then
+        scp -r $locale $remote
+    elif [ z"$action" == z"pull" ]; then
+        scp -r $remote $locale
+    else
+        echo "Action not recognise!"
+    fi
+
+    cd $begin
+    shift
+done
